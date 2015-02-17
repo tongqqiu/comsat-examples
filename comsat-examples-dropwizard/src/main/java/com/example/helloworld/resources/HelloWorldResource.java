@@ -13,6 +13,9 @@ import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
+
+import com.wordnik.swagger.annotations.Api;
+import com.wordnik.swagger.annotations.ApiOperation;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.util.EntityUtils;
@@ -22,6 +25,7 @@ import org.skife.jdbi.v2.exceptions.UnableToExecuteStatementException;
 import org.skife.jdbi.v2.util.StringMapper;
 
 @Path("/hello-world")
+@Api(value = "/hello-world", description = "Operations about hello-world")
 @Produces(MediaType.APPLICATION_JSON)
 public class HelloWorldResource {
     final String ALREADY_EXISTS_ERROR = "X0Y32";
@@ -52,9 +56,12 @@ public class HelloWorldResource {
 
     @GET
     @Path("/http")
+    @ApiOperation(
+            value = "get hello via http",
+            notes = "Returns welcome",
+            response = String.class)
     @Timed
-    public String sayGoodye(@QueryParam("name") Optional<String> name) throws InterruptedException, SuspendExecution {
-        final String value = String.format(template, name.or(defaultName));
+    public String sayGoodye() throws InterruptedException, SuspendExecution {
         String resp;
         try {
             resp = EntityUtils.toString(httpClient.execute(new HttpGet("http://localhost:8080/hello-world?sleep=100")).getEntity());

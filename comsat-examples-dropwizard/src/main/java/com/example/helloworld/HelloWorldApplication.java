@@ -4,6 +4,16 @@ import co.paralleluniverse.fibers.dropwizard.FiberApplication;
 import co.paralleluniverse.fibers.dropwizard.FiberDBIFactory;
 import co.paralleluniverse.fibers.dropwizard.FiberHttpClientBuilder;
 import com.example.helloworld.resources.HelloWorldResource;
+import com.wordnik.swagger.config.ConfigFactory;
+import com.wordnik.swagger.config.ScannerFactory;
+import com.wordnik.swagger.config.SwaggerConfig;
+import com.wordnik.swagger.jaxrs.config.DefaultJaxrsScanner;
+import com.wordnik.swagger.jaxrs.listing.ApiDeclarationProvider;
+import com.wordnik.swagger.jaxrs.listing.ApiListingResourceJSON;
+import com.wordnik.swagger.jaxrs.listing.ResourceListingProvider;
+import com.wordnik.swagger.jaxrs.reader.DefaultJaxrsApiReader;
+import com.wordnik.swagger.reader.ClassReaders;
+import io.dropwizard.assets.AssetsBundle;
 import io.dropwizard.setup.Bootstrap;
 import io.dropwizard.setup.Environment;
 import java.util.Arrays;
@@ -22,11 +32,14 @@ public class HelloWorldApplication extends FiberApplication<HelloWorldConfigurat
 
     @Override
     public void initialize(Bootstrap<HelloWorldConfiguration> bootstrap) {
+        bootstrap.addBundle(new AssetsBundle("/assets/", "/api"));
     }
 
     @Override
     public void fiberRun(HelloWorldConfiguration configuration,
             final Environment environment) throws ClassNotFoundException {
+
+
 
         final HttpClient fhc = new FiberHttpClientBuilder(environment).
                 using(configuration.getHttpClientConfiguration()).
@@ -42,6 +55,18 @@ public class HelloWorldApplication extends FiberApplication<HelloWorldConfigurat
                 jdbi,
                 dao
         );
-        environment.jersey().register(helloWorldResource);       
+
+        environment.jersey().register(new ResourceListingProvider());
+        environment.jersey().register(new ApiDeclarationProvider());
+        environment.jersey().register(new ApiListingResourceJSON());
+        ScannerFactory.setScanner(new DefaultJaxrsScanner());
+        ClassReaders.setReader(new DefaultJaxrsApiReader());
+
+        SwaggerConfig config = ConfigFactory.config();
+        config.setApiVersion("0.1");
+        config.setBasePath("http://localhost:8080");
+
+        environment.jersey().register(helloWorldResource);
+
     }
 }
