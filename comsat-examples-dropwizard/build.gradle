@@ -5,7 +5,6 @@ configurations {
 dependencies {
     compile "co.paralleluniverse:comsat-dropwizard:$comsatVersion"
     runtime 'org.apache.derby:derby:10.10.1.1'    
-    //    runtime 'mysql:mysql-connector-java:5.1.30'
     compile 'io.dropwizard:dropwizard-assets:0.7.1'
     compile  "co.paralleluniverse:quasar-core:$quasarVersion"
     quasar  "co.paralleluniverse:quasar-core:$quasarVersion"
@@ -39,4 +38,37 @@ task(runSimple, dependsOn: 'classes', type: JavaExec) {
     // args "server", "hello-world.yml"
 }
 
+mainClassName = "com.example.helloworld.HelloWorldApplication"
+// inject javaagent into the distribution
+applicationDefaultJvmArgs = [
+        "-javaagent:\$APP_HOME/lib/quasar-core-${quasarVersion}.jar", "-server",
+        '-Dco.paralleluniverse.fibers.verifyInstrumentation=true'
+]
+
+
+// $ symbol gets escaped in script anyway:( so we need to replace it.
+startScripts {
+    doLast {
+        unixScript.text = unixScript.text.replace('\\$APP_HOME', '\$APP_HOME')
+        // do something like this for Windows scripts also
+    }
+}
+
+applicationDistribution.from('.') {
+    include 'hello-world.yml'
+    into "conf"
+}
+
+applicationDistribution.from('src/main/bin') {
+    include '*'
+    into "bin"
+    fileMode 0755
+}
+
+applicationDistribution.from('.') {
+    include 'readme.txt'
+    into "."
+}
+
 defaultTasks 'runSimple'
+
