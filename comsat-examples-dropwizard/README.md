@@ -21,7 +21,7 @@ To package:
 gradle distZip
 ```
 
-The package is under `build/distribution`, unzi, and it can be runned as
+The package is under `build/distribution`, unzip, and it can be run as
 
 ```sh
 ./bin/comsat-examples-dropwizard server ./conf/hello-world.yml
